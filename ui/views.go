@@ -14,9 +14,9 @@ func RenderMainView(products []models.Product, selected int, category string) st
 	// Add extra padding before logo
 	sb.WriteString("\n")
 
-	// Render logo
-	sb.WriteString(styles.TitleStyle.Render())
-	sb.WriteString("\n\n")
+	// Render logo with style
+	sb.WriteString(styles.LogoStyle.Render(Logo))
+	sb.WriteString("\n")
 
 	// Get unique categories
 	categories := getUniqueCategories(products)
@@ -58,9 +58,9 @@ func RenderDetailView(product models.Product) string {
 	// Add extra padding before logo
 	sb.WriteString("\n")
 
-	// Render logo
-	sb.WriteString(styles.TitleStyle.Render())
-	sb.WriteString("\n\n")
+	// Render logo with style
+	sb.WriteString(styles.LogoStyle.Render(Logo))
+	sb.WriteString("\n")
 
 	// Product details
 	sb.WriteString(styles.CategoryStyle.Render(product.Name))
@@ -81,29 +81,15 @@ func RenderDetailView(product models.Product) string {
 	return sb.String()
 }
 
-func getUniqueCategories(products []models.Product) []string {
-	categories := make(map[string]bool)
-	var result []string
-
-	for _, p := range products {
-		if !categories[p.Category] {
-			categories[p.Category] = true
-			result = append(result, p.Category)
-		}
-	}
-
-	return result
-}
-
 func RenderCheckoutView(products []models.Product) string {
 	var sb strings.Builder
 
 	// Add extra padding before logo
 	sb.WriteString("\n")
 
-	// Render logo
-	sb.WriteString(styles.TitleStyle.Render())
-	sb.WriteString("\n\n")
+	// Render logo with style
+	sb.WriteString(styles.LogoStyle.Render(Logo))
+	sb.WriteString("\n")
 
 	// Calculate total
 	var total float64
@@ -141,4 +127,18 @@ func RenderCheckoutView(products []models.Product) string {
 	sb.WriteString(styles.ProductStyle.Render("[b] Back | [p] Proceed to Payment | [q] Quit"))
 
 	return sb.String()
+}
+
+func getUniqueCategories(products []models.Product) []string {
+	categories := make(map[string]bool)
+	var result []string
+
+	for _, p := range products {
+		if !categories[p.Category] {
+			categories[p.Category] = true
+			result = append(result, p.Category)
+		}
+	}
+
+	return result
 }

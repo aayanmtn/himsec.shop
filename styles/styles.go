@@ -9,11 +9,10 @@ var (
 	categoryColor  = lipgloss.Color("#FF8B5B") // Lighter orange for categories
 
 	// Styles
-	TitleStyle = lipgloss.NewStyle().
+	LogoStyle = lipgloss.NewStyle().
 		Foreground(primaryColor).
 		Bold(true).
 		Padding(2, 0).
-		SetString("HIMSEC SHOP").
 		Align(lipgloss.Center).
 		Border(lipgloss.NormalBorder()).
 		BorderForeground(primaryColor).
