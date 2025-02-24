@@ -1,39 +1,46 @@
+
 package styles
 
 import "github.com/charmbracelet/lipgloss"
 
 var (
 	// Colors
-	PrimaryColor   = lipgloss.Color("#FF6B35") // Orange color for brand
-	textColor      = lipgloss.Color("#FFFFFF") // White text
-	categoryColor  = lipgloss.Color("#FF8B5B") // Lighter orange for categories
+	PrimaryColor   = lipgloss.Color("#FF4B6C") // Vibrant pink
+	SecondaryColor = lipgloss.Color("#4ECDC4") // Teal accent
+	textColor      = lipgloss.Color("#F7F7F7") // Soft white
+	categoryColor  = lipgloss.Color("#FFB86C") // Warm orange
+	accentColor    = lipgloss.Color("#BD93F9") // Purple accent
 
 	// Styles
 	LogoStyle = lipgloss.NewStyle().
 		Foreground(PrimaryColor).
 		Bold(true).
-		Padding(2, 0).
+		Padding(2, 4).
 		Align(lipgloss.Center).
-		Border(lipgloss.RoundedBorder()).
-		BorderForeground(PrimaryColor).
-		Width(60) // Increased width to make logo more prominent
+		Border(lipgloss.DoubleBorder()).
+		BorderForeground(SecondaryColor).
+		Width(70)
 
 	CategoryStyle = lipgloss.NewStyle().
 		Foreground(categoryColor).
 		Bold(true).
-		Padding(1, 0, 0, 2)
+		Padding(1, 0, 0, 4).
+		Underline(true)
 
 	ProductStyle = lipgloss.NewStyle().
 		Foreground(textColor).
-		Padding(0, 2)
+		Padding(0, 4).
+		MarginLeft(2)
 
 	PriceStyle = lipgloss.NewStyle().
-		Foreground(textColor).
-		Width(8).
+		Foreground(accentColor).
+		Bold(true).
+		Width(10).
 		Align(lipgloss.Right)
 
 	StarStyle = lipgloss.NewStyle().
-		Foreground(PrimaryColor).
+		Foreground(SecondaryColor).
+		Bold(true).
 		Padding(0, 0, 0, 1)
 
 	SeparatorStyle = lipgloss.NewStyle().
