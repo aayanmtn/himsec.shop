@@ -1,0 +1,33 @@
+ui/views.go:122:88: syntax error: unexpected if, expecting expression
+ui/views.go:124:91: syntax error: unexpected if, expecting expression
+ui/views.go:126:87: syntax error: unexpected if, expecting expression
+ui/views.go:128:91: syntax error: unexpected if, expecting expression
+ui/views.go:130:87: syntax error: unexpected if, expecting expression
+ui/views.go:132:85: syntax error: unexpected if, expecting expressionui/views.go:122:88: syntax error: unexpected if, expecting expression
+ui/views.go:124:91: syntax error: unexpected if, expecting expression
+ui/views.go:126:87: syntax error: unexpected if, expecting expression
+ui/views.go:128:91: syntax error: unexpected if, expecting expression
+ui/views.go:130:87: syntax error: unexpected if, expecting expression
+ui/views.go:132:85: syntax error: unexpected if, expecting expressionui/views.go:122:88: syntax error: unexpected if, expecting expression
+ui/views.go:124:91: syntax error: unexpected if, expecting expression
+ui/views.go:126:87: syntax error: unexpected if, expecting expression
+ui/views.go:128:91: syntax error: unexpected if, expecting expression
+ui/views.go:130:87: syntax error: unexpected if, expecting expression
+ui/views.go:132:85: syntax error: unexpected if, expecting expression
+bash: ui/views.go:122:88:: No such file or directory
+bash: ui/views.go:124:91:: No such file or directory
+bash: ui/views.go:126:87:: No such file or directory
+bash: ui/views.go:128:91:: No such file or directory
+bash: ui/views.go:130:87:: No such file or directory
+bash: ui/views.go:132:85:: No such file or directory
+bash: ui/views.go:124:91:: No such file or directory
+bash: ui/views.go:126:87:: No such file or directory
+bash: ui/views.go:128:91:: No such file or directory
+bash: ui/views.go:130:87:: No such file or directory
+bash: ui/views.go:132:85:: No such file or directory
+bash: ui/views.go:124:91:: No such file or directory
+bash: ui/views.go:126:87:: No such file or directory
+bash: ui/views.go:128:91:: No such file or directory
+bash: ui/views.go:130:87:: No such file or directory
+bash: ui/views.go:132:85:: No such file or directory
+~/workspace$ 
