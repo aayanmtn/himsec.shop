@@ -1,99 +1,116 @@
 package main
 
 import (
+	"context"
 	"fmt"
+	"log"
+	"os"
+	"time"
+
+	"github.com/charmbracelet/bubbles/border"
+	tea "github.com/charmbracelet/bubbletea"
+	"github.com/charmbracelet/wish"
+	bm "github.com/charmbracelet/wish/bubbletea"
+	"github.com/charmbracelet/wish/logging"
 
 	"himsec.shop/models"
 	"himsec.shop/ui"
 )
 
-func main() {
-	// Initialize the program state
-	program := NewProgram()
+const (
+	host = "0.0.0.0"
+	port = 2222
+)
 
-	// Start the main loop
-	for {
-		// Clear screen
-		fmt.Print("\033[H\033[2J")
-
-		// Render current view
-		fmt.Println(program.View())
-
-		// Get input
-		var input string
-		fmt.Scanln(&input)
-
-		// Handle input
-		if input == "q" {
-			break
-		}
-		program.HandleInput(input)
-	}
-}
-
-type Program struct {
-	currentView string
+type model struct {
 	products    []models.Product
 	selected    int
+	currentView string
+	width      int
+	height     int
+	border     border.Border
 }
 
-func NewProgram() *Program {
-	return &Program{
-		currentView: "main",
+func initialModel() model {
+	return model{
 		products:    models.InitializeProducts(),
 		selected:    0,
+		currentView: "main",
+		border:     border.Normal,
 	}
 }
 
-func (p *Program) View() string {
-	switch p.currentView {
+func (m model) Init() tea.Cmd {
+	return nil
+}
+
+func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
+	switch msg := msg.(type) {
+	case tea.KeyMsg:
+		switch msg.String() {
+		case "q", "ctrl+c":
+			return m, tea.Quit
+		case "up", "k":
+			if m.selected > 0 {
+				m.selected--
+			}
+		case "down", "j":
+			if m.selected < len(m.products)-1 {
+				m.selected++
+			}
+		case "enter":
+			m.currentView = "detail"
+		case "w":
+			m.products[m.selected].WishList = !m.products[m.selected].WishList
+		case "b":
+			if m.currentView == "detail" {
+				m.currentView = "main"
+			} else {
+				m.currentView = "checkout"
+			}
+		}
+	case tea.WindowSizeMsg:
+		m.width = msg.Width
+		m.height = msg.Height
+	}
+	return m, nil
+}
+
+func (m model) View() string {
+	s := ""
+	switch m.currentView {
 	case "main":
-		return ui.RenderMainView(p.products, p.selected, "all")
+		s = ui.RenderMainView(m.products, m.selected, "all")
 	case "detail":
-		return ui.RenderDetailView(p.products[p.selected])
+		s = ui.RenderDetailView(m.products[m.selected])
 	case "checkout":
-		return ui.RenderCheckoutView(p.products) // Assumed function in ui package
-	default:
-		return ui.RenderMainView(p.products, p.selected, "all")
+		s = ui.RenderCheckoutView(m.products)
+	}
+
+	return fmt.Sprintf("\n%s\n", s)
+}
+
+func main() {
+	// Set up SSH server
+	s, err := wish.NewServer(
+		wish.WithAddress(fmt.Sprintf("%s:%d", host, port)),
+		wish.WithHostKeyPath(".ssh/term_info_ed25519"),
+		wish.WithMiddleware(
+			bm.Middleware(teaHandler),
+			logging.Middleware(),
+		),
+	)
+	if err != nil {
+		log.Fatalln(err)
+	}
+
+	fmt.Printf("Starting SSH server on %s:%d\n", host, port)
+	if err := s.ListenAndServe(); err != nil {
+		log.Fatalln(err)
 	}
 }
 
-func (p *Program) HandleInput(input string) {
-	switch p.currentView {
-	case "main":
-		switch input {
-		case "up", "p":
-			if p.selected > 0 {
-				p.selected--
-			}
-		case "down", "n":
-			if p.selected < len(p.products)-1 {
-				p.selected++
-			}
-		case "enter", "d":
-			p.currentView = "detail"
-		case "w":
-			// Toggle wishlist for selected product
-			p.products[p.selected].WishList = !p.products[p.selected].WishList
-		case "b":
-			p.currentView = "checkout"
-		}
-	case "detail":
-		switch input {
-		case "b":
-			p.currentView = "main"
-		case "w":
-			// Toggle wishlist for current product
-			p.products[p.selected].WishList = !p.products[p.selected].WishList
-		case "p":
-			// TODO: Implement payment gateway integration
-			p.currentView = "checkout"
-		}
-	case "checkout":
-		// Add checkout handling logic here (e.g., processing order)
-		if input == "b" {
-			p.currentView = "main"
-		}
-
-	}
+func teaHandler(s wish.Session) (tea.Model, []tea.ProgramOption) {
+	m := initialModel()
+	return m, []tea.ProgramOption{tea.WithAltScreen()}
 }
