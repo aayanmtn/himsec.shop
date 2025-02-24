@@ -93,7 +93,7 @@ Description: %s`,
 	return borderStyle.Render(sb.String())
 }
 
-func RenderCheckoutView(products []models.Product, currentField int, name, address, phone, country, state, city string) string {
+func RenderCheckoutView(products []models.Product, wishes []models.Wish, currentField int, name, address, phone, country, state, city string) string {
 	var sb strings.Builder
 
 	// Add the logo
@@ -150,10 +150,10 @@ func RenderCheckoutView(products []models.Product, currentField int, name, addre
 	sb.WriteString("\n\n")
 
 	// Wish List
-	if len(m.wishes) > 0 {
+	if len(wishes) > 0 {
 		cartContent.WriteString(styles.CategoryStyle.Render("\n— Wish List"))
 		cartContent.WriteString("\n")
-		for _, wish := range m.wishes {
+		for _, wish := range wishes {
 			cartContent.WriteString(styles.ProductStyle.Render("♥ " + wish.ProductName))
 			cartContent.WriteString("\n")
 		}
