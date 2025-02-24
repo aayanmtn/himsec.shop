@@ -83,18 +83,6 @@ func (m model) View() string {
 }
 
 func main() {
-	// Start HTTP server
-	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
-		fmt.Fprintf(w, "HimSec Shop API Server Running")
-	})
-	go func() {
-		log.Printf("Starting HTTP server on port 5000\n")
-		if err := http.ListenAndServe("0.0.0.0:5000", nil); err != nil {
-			log.Printf("HTTP server error: %v\n", err)
-		}
-	}()
-
-	// Start terminal UI
 	p := tea.NewProgram(initialModel(), tea.WithAltScreen())
 	if _, err := p.Run(); err != nil {
 		log.Fatal(err)
