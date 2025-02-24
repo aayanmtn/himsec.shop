@@ -132,7 +132,7 @@ func (m model) View() string {
 	case "detail":
 		s = ui.RenderDetailView(m.products[m.selected])
 	case "checkout":
-		s = ui.RenderCheckoutView(m.products[m.selected:m.selected+1], m.address) // Pass selected product and address
+		s = ui.RenderCheckoutView(m.products[m.selected:m.selected+1], m.currentField, m.name, m.address, m.phone, m.country, m.state, m.city)
 	}
 
 	return fmt.Sprintf("\n%s\n", s)

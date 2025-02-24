@@ -93,7 +93,7 @@ Description: %s`,
 	return borderStyle.Render(sb.String())
 }
 
-func RenderCheckoutView(products []models.Product, address string) string {
+func RenderCheckoutView(products []models.Product, currentField int, name, address, phone, country, state, city string) string {
 	var sb strings.Builder
 
 	// Add the logo
