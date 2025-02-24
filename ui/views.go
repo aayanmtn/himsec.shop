@@ -119,23 +119,26 @@ func RenderCheckoutView(products []models.Product, currentField int, name, addre
 
 	cartContent.WriteString(styles.CategoryStyle.Render("— Customer Information"))
 	cartContent.WriteString("\n")
-	cursor := func(field int) string {
-		if currentField == field {
-			return "_"
+	highlightStyle := lipgloss.NewStyle().Background(styles.PrimaryColor)
+	
+	renderField := func(label, value string, fieldNum int) string {
+		if currentField == fieldNum {
+			return fmt.Sprintf("%s: %s_", label, value)
 		}
-		return ""
+		return fmt.Sprintf("%s: %s", label, value)
 	}
-	cartContent.WriteString(styles.ProductStyle.Render(fmt.Sprintf("Name: %s%s", name, cursor(0))))
+	
+	cartContent.WriteString(styles.ProductStyle.Render(renderField("Name", name, 0)))
 	cartContent.WriteString("\n")
-	cartContent.WriteString(styles.ProductStyle.Render(fmt.Sprintf("Address: %s%s", address, cursor(1))))
+	cartContent.WriteString(styles.ProductStyle.Render(renderField("Address", address, 1)))
 	cartContent.WriteString("\n")
-	cartContent.WriteString(styles.ProductStyle.Render(fmt.Sprintf("Phone: %s%s", phone, cursor(2))))
+	cartContent.WriteString(styles.ProductStyle.Render(renderField("Phone", phone, 2)))
 	cartContent.WriteString("\n")
-	cartContent.WriteString(styles.ProductStyle.Render(fmt.Sprintf("Country: %s%s", country, cursor(3))))
+	cartContent.WriteString(styles.ProductStyle.Render(renderField("Country", country, 3)))
 	cartContent.WriteString("\n")
-	cartContent.WriteString(styles.ProductStyle.Render(fmt.Sprintf("State: %s%s", state, cursor(4))))
+	cartContent.WriteString(styles.ProductStyle.Render(renderField("State", state, 4)))
 	cartContent.WriteString("\n")
-	cartContent.WriteString(styles.ProductStyle.Render(fmt.Sprintf("City: %s%s", city, cursor(5))))
+	cartContent.WriteString(styles.ProductStyle.Render(renderField("City", city, 5)))
 	cartContent.WriteString("\n\n")
 	
 	cartContent.WriteString(styles.CategoryStyle.Render("— Summary"))
