@@ -7,7 +7,6 @@ type Product struct {
 	Description string
 	SKU         string   // Unique product identifier for payment gateway
 	ImageURL    string   // Product image URL
-	WishList    bool     // Whether the product is in wishlist
 }
 
 func InitializeProducts() []Product {
@@ -18,7 +17,6 @@ func InitializeProducts() []Product {
 			Price:       9.99,
 			Description: "Metal keychain with Vim logo",
 			SKU:         "ACC-VIM-001",
-			WishList:    false,
 		},
 		{
 			Name:        "Git Sticker Pack",
@@ -26,7 +24,6 @@ func InitializeProducts() []Product {
 			Price:       7.99,
 			Description: "Set of 5 Git-themed vinyl stickers",
 			SKU:         "STK-GIT-001",
-			WishList:    false,
 		},
 		{
 			Name:        "Linux Penguin T-Shirt",
@@ -34,7 +31,6 @@ func InitializeProducts() []Product {
 			Price:       25.99,
 			Description: "Premium Tux penguin t-shirt in black",
 			SKU:         "CLT-LNX-001",
-			WishList:    false,
 		},
 		{
 			Name:        "Firefox Logo Cap",
@@ -42,7 +38,6 @@ func InitializeProducts() []Product {
 			Price:       19.99,
 			Description: "Baseball cap with Mozilla Firefox logo",
 			SKU:         "CLT-FFX-001",
-			WishList:    false,
 		},
 	}
 }

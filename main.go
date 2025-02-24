@@ -1,26 +1,15 @@
 package main
 
 import (
-	"context"
 	"fmt"
 	"log"
-	"os"
-	"path/filepath"
-	"time"
+	"net/http"
 
-	"github.com/charmbracelet/lipgloss"
 	tea "github.com/charmbracelet/bubbletea"
-	"github.com/charmbracelet/wish"
-	bm "github.com/charmbracelet/wish/bubbletea"
-	"github.com/charmbracelet/wish/logging"
+	"github.com/charmbracelet/lipgloss"
 
 	"himsec.shop/models"
 	"himsec.shop/ui"
-)
-
-const (
-	host = "0.0.0.0"
-	port = 2222
 )
 
 type model struct {
@@ -61,12 +50,14 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			}
 		case "enter":
 			m.currentView = "detail"
-		case "w":
-			m.products[m.selected].WishList = !m.products[m.selected].WishList
 		case "b":
 			if m.currentView == "detail" {
 				m.currentView = "main"
-			} else {
+			} else if m.currentView == "main" {
+				m.currentView = "checkout"
+			}
+		case "p":
+			if m.currentView == "detail" {
 				m.currentView = "checkout"
 			}
 		}
@@ -85,61 +76,27 @@ func (m model) View() string {
 	case "detail":
 		s = ui.RenderDetailView(m.products[m.selected])
 	case "checkout":
-		s = ui.RenderCheckoutView(m.products)
+		s = ui.RenderCheckoutView(m.products[m.selected:m.selected+1]) // Pass only selected product
 	}
 
 	return fmt.Sprintf("\n%s\n", s)
 }
 
-func ensureSSHDirectory() error {
-	sshDir := ".ssh"
-	if err := os.MkdirAll(sshDir, 0700); err != nil {
-		return fmt.Errorf("failed to create .ssh directory: %w", err)
-	}
-	return nil
-}
-
 func main() {
-	// Ensure .ssh directory exists
-	if err := ensureSSHDirectory(); err != nil {
-		log.Fatalf("Failed to setup SSH directory: %v", err)
-	}
+	// Start HTTP server
+	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
+		fmt.Fprintf(w, "HimSec Shop API Server Running")
+	})
+	go func() {
+		log.Printf("Starting HTTP server on port 5000\n")
+		if err := http.ListenAndServe("0.0.0.0:5000", nil); err != nil {
+			log.Printf("HTTP server error: %v\n", err)
+		}
+	}()
 
-	hostKeyPath := filepath.Join(".ssh", "term_info_ed25519")
-
-	// Set up SSH server with more detailed error handling
-	s, err := wish.NewServer(
-		wish.WithAddress(fmt.Sprintf("%s:%d", host, port)),
-		wish.WithHostKeyPath(hostKeyPath),
-		wish.WithMiddleware(
-			bm.Middleware(teaHandler),
-			logging.Middleware(),
-		),
-	)
-	if err != nil {
-		log.Fatalf("Failed to create SSH server: %v", err)
-	}
-
-	// Log server startup
-	log.Printf("Starting SSH server on %s:%d\n", host, port)
-	if err := s.ListenAndServe(); err != nil {
-		log.Fatalf("SSH server failed: %v", err)
-	}
-}
-
-func teaHandler(s wish.Session) (tea.Model, []tea.ProgramOption) {
-	pty, _, active := s.Pty()
-	if !active {
-		fmt.Println("No active terminal, skipping")
-		return nil, nil
-	}
-
-	m := initialModel()
-	return m, []tea.ProgramOption{
-		tea.WithAltScreen(),
-		tea.WithMouseCellMotion(),
-		tea.WithMouseAllMotion(),
-		tea.WithInput(pty),
-		tea.WithOutput(pty),
+	// Start terminal UI
+	p := tea.NewProgram(initialModel(), tea.WithAltScreen())
+	if _, err := p.Run(); err != nil {
+		log.Fatal(err)
 	}
 }

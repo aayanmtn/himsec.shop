@@ -35,15 +35,9 @@ func RenderMainView(products []models.Product, selected int, category string) st
 		for i, product := range products {
 			if product.Category == cat {
 				price := fmt.Sprintf("$%.2f", product.Price)
-				wishlistMark := " "
-				if product.WishList {
-					wishlistMark = "♥"
-				}
-
-				productLine := fmt.Sprintf("%s %s %s %s",
+				productLine := fmt.Sprintf("%s %s %s",
 					product.Name,
 					styles.PriceStyle.Render(price),
-					wishlistMark,
 					styles.StarStyle.Render("★"))
 
 				// Highlight selected item
@@ -61,7 +55,7 @@ func RenderMainView(products []models.Product, selected int, category string) st
 	}
 
 	// Render controls with border
-	controls := styles.ProductStyle.Render("[q] Quit | [↑/↓] Navigate | [enter] Select | [w] Wishlist | [b] Buy")
+	controls := styles.ProductStyle.Render("[q] Quit | [↑/↓] Navigate | [enter] Select | [b] Checkout")
 	sb.WriteString(borderStyle.Render(controls))
 
 	return borderStyle.Render(sb.String())
@@ -84,18 +78,16 @@ func RenderDetailView(product models.Product) string {
 %s
 
 Price: %s
-Description: %s
-%s`,
+Description: %s`,
 		styles.CategoryStyle.Render(product.Name),
 		styles.PriceStyle.Render(fmt.Sprintf("$%.2f", product.Price)),
-		product.Description,
-		product.WishList ? "Status: In Wishlist ♥" : "")
+		product.Description)
 
 	sb.WriteString(borderStyle.Render(details))
 	sb.WriteString("\n\n")
 
 	// Controls
-	controls := styles.ProductStyle.Render("[b] Back | [w] Toggle Wishlist | [p] Purchase | [q] Quit")
+	controls := styles.ProductStyle.Render("[b] Back | [p] Purchase | [q] Quit")
 	sb.WriteString(borderStyle.Render(controls))
 
 	return borderStyle.Render(sb.String())
@@ -113,39 +105,23 @@ func RenderCheckoutView(products []models.Product) string {
 		Border(lipgloss.RoundedBorder()).
 		BorderForeground(styles.PrimaryColor)
 
-	// Calculate total
-	var total float64
-	var itemCount int
-
 	// Cart items
 	cartContent := &strings.Builder{}
-	cartContent.WriteString(styles.CategoryStyle.Render("— Cart"))
+	cartContent.WriteString(styles.CategoryStyle.Render("— Selected Item"))
 	cartContent.WriteString("\n")
 
-	for _, product := range products {
-		if product.WishList {
-			itemCount++
-			total += product.Price
-			cartContent.WriteString(styles.ProductStyle.Render(fmt.Sprintf("%s %s",
-				product.Name,
-				styles.PriceStyle.Render(fmt.Sprintf("$%.2f", product.Price)))))
-			cartContent.WriteString("\n")
-		}
-	}
+	// Show selected product
+	product := products[0] // For now, just show first product
+	cartContent.WriteString(styles.ProductStyle.Render(fmt.Sprintf("%s %s",
+		product.Name,
+		styles.PriceStyle.Render(fmt.Sprintf("$%.2f", product.Price)))))
+	cartContent.WriteString("\n\n")
 
-	if itemCount == 0 {
-		cartContent.WriteString(styles.ProductStyle.Render("Cart is empty"))
-		cartContent.WriteString("\n")
-	} else {
-		cartContent.WriteString("\n")
-		cartContent.WriteString(styles.CategoryStyle.Render("— Summary"))
-		cartContent.WriteString("\n")
-		cartContent.WriteString(styles.ProductStyle.Render(fmt.Sprintf("Total Items: %d", itemCount)))
-		cartContent.WriteString("\n")
-		cartContent.WriteString(styles.ProductStyle.Render(fmt.Sprintf("Total: %s",
-			styles.PriceStyle.Render(fmt.Sprintf("$%.2f", total)))))
-		cartContent.WriteString("\n")
-	}
+	cartContent.WriteString(styles.CategoryStyle.Render("— Summary"))
+	cartContent.WriteString("\n")
+	cartContent.WriteString(styles.ProductStyle.Render(fmt.Sprintf("Total: %s",
+		styles.PriceStyle.Render(fmt.Sprintf("$%.2f", product.Price)))))
+	cartContent.WriteString("\n")
 
 	sb.WriteString(borderStyle.Render(cartContent.String()))
 	sb.WriteString("\n\n")
@@ -170,5 +146,3 @@ func getUniqueCategories(products []models.Product) []string {
 
 	return result
 }
-
-var Logo = "  _   _      _ _         \n | | | | ___| | | ___ _ __ \n | |_| |/ _ \\ | |/ _ \\ '__|\n |  _  |  __/ | |  __/ |   \n |_| |_|\\___|_|_|\\___|_|   \n"
