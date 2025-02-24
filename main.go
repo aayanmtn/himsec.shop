@@ -48,12 +48,20 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		case "q", "ctrl+c":
 			return m, tea.Quit
 		case "up", "k":
-			if m.selected > 0 {
+			if m.currentView == "checkout" && m.currentField > 0 {
+				m.currentField--
+			} else if m.currentView == "main" && m.selected > 0 {
 				m.selected--
 			}
 		case "down", "j":
-			if m.selected < len(m.products)-1 {
+			if m.currentView == "checkout" {
+				m.currentField = (m.currentField + 1) % 6
+			} else if m.currentView == "main" && m.selected < len(m.products)-1 {
 				m.selected++
+			}
+		case "tab":
+			if m.currentView == "checkout" {
+				m.currentField = (m.currentField + 1) % 6
 			}
 		case "enter":
 			m.currentView = "detail"
@@ -71,18 +79,6 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		case "p":
 			if m.currentView == "detail" {
 				m.currentView = "checkout"
-			}
-		case "tab", "down", "j":
-			if m.currentView == "checkout" {
-				m.currentField = (m.currentField + 1) % 6
-			} else if m.currentView == "main" && m.selected < len(m.products)-1 {
-				m.selected++
-			}
-		case "up", "k":
-			if m.currentView == "checkout" && m.currentField > 0 {
-				m.currentField--
-			} else if m.currentView == "main" && m.selected > 0 {
-				m.selected--
 			}
 		default:
 			if m.currentView == "checkout" {
