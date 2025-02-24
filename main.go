@@ -66,9 +66,17 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			if m.currentView == "detail" {
 				m.currentView = "checkout"
 			}
-		case "tab":
+		case "tab", "down", "j":
 			if m.currentView == "checkout" {
 				m.currentField = (m.currentField + 1) % 6
+			} else if m.currentView == "main" && m.selected < len(m.products)-1 {
+				m.selected++
+			}
+		case "up", "k":
+			if m.currentView == "checkout" && m.currentField > 0 {
+				m.currentField--
+			} else if m.currentView == "main" && m.selected > 0 {
+				m.selected--
 			}
 		default:
 			if m.currentView == "checkout" {
