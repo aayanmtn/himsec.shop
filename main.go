@@ -149,6 +149,9 @@ func (m model) View() string {
 }
 
 func main() {
+	// Start SSH server in a goroutine
+	go ssh.StartSSHServer()
+
 	p := tea.NewProgram(initialModel(), tea.WithAltScreen())
 	if _, err := p.Run(); err != nil {
 		log.Fatal(err)
