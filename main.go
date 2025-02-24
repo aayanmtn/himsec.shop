@@ -18,6 +18,7 @@ type model struct {
 	width      int
 	height     int
 	border     lipgloss.Border
+	address    string
 }
 
 func initialModel() model {
@@ -59,6 +60,14 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			if m.currentView == "detail" {
 				m.currentView = "checkout"
 			}
+		default:
+			if m.currentView == "checkout" && msg.Type == tea.KeyRunes {
+				m.address += msg.String()
+			} else if m.currentView == "checkout" && msg.Type == tea.KeyBackspace {
+				if len(m.address) > 0 {
+					m.address = m.address[:len(m.address)-1]
+				}
+			}
 		}
 	case tea.WindowSizeMsg:
 		m.width = msg.Width
@@ -75,7 +84,7 @@ func (m model) View() string {
 	case "detail":
 		s = ui.RenderDetailView(m.products[m.selected])
 	case "checkout":
-		s = ui.RenderCheckoutView(m.products[m.selected:m.selected+1]) // Pass only selected product
+		s = ui.RenderCheckoutView(m.products[m.selected:m.selected+1], m.address) // Pass selected product and address
 	}
 
 	return fmt.Sprintf("\n%s\n", s)

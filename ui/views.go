@@ -93,7 +93,7 @@ Description: %s`,
 	return borderStyle.Render(sb.String())
 }
 
-func RenderCheckoutView(products []models.Product) string {
+func RenderCheckoutView(products []models.Product, address string) string {
 	var sb strings.Builder
 
 	// Add the logo
@@ -117,6 +117,15 @@ func RenderCheckoutView(products []models.Product) string {
 		styles.PriceStyle.Render(fmt.Sprintf("$%.2f", product.Price)))))
 	cartContent.WriteString("\n\n")
 
+	cartContent.WriteString(styles.CategoryStyle.Render("— Shipping Address"))
+	cartContent.WriteString("\n")
+	if address == "" {
+		cartContent.WriteString(styles.ProductStyle.Render("Type your address: _"))
+	} else {
+		cartContent.WriteString(styles.ProductStyle.Render("Address: " + address))
+	}
+	cartContent.WriteString("\n\n")
+	
 	cartContent.WriteString(styles.CategoryStyle.Render("— Summary"))
 	cartContent.WriteString("\n")
 	cartContent.WriteString(styles.ProductStyle.Render(fmt.Sprintf("Total: %s",
