@@ -5,39 +5,44 @@ type Product struct {
 	Category    string
 	Price       float64
 	Description string
+	SKU         string   // Unique product identifier for payment gateway
+	ImageURL    string   // Product image URL
+	WishList    bool     // Whether the product is in wishlist
 }
 
 func InitializeProducts() []Product {
 	return []Product{
 		{
-			Name:        "Encrypted USB Drive",
-			Category:    "hardware",
-			Price:       49.99,
-			Description: "256-bit AES encrypted USB drive with physical write-protect switch",
-		},
-		{
-			Name:        "Security Key Bundle",
-			Category:    "hardware",
-			Price:       79.99,
-			Description: "FIDO2 security key set for two-factor authentication",
-		},
-		{
-			Name:        "Privacy Screen",
+			Name:        "Vim Keychain",
 			Category:    "accessories",
-			Price:       29.99,
-			Description: "Anti-spy laptop privacy screen filter",
+			Price:       9.99,
+			Description: "Metal keychain with Vim logo",
+			SKU:         "ACC-VIM-001",
+			WishList:    false,
 		},
 		{
-			Name:        "VPN License",
-			Category:    "software",
-			Price:       59.99,
-			Description: "Annual license for premium VPN service",
+			Name:        "Git Sticker Pack",
+			Category:    "stickers",
+			Price:       7.99,
+			Description: "Set of 5 Git-themed vinyl stickers",
+			SKU:         "STK-GIT-001",
+			WishList:    false,
 		},
 		{
-			Name:        "Hardware Firewall",
-			Category:    "hardware",
-			Price:       199.99,
-			Description: "Open-source network security appliance",
+			Name:        "Linux Penguin T-Shirt",
+			Category:    "clothing",
+			Price:       25.99,
+			Description: "Premium Tux penguin t-shirt in black",
+			SKU:         "CLT-LNX-001",
+			WishList:    false,
+		},
+		{
+			Name:        "Firefox Logo Cap",
+			Category:    "clothing",
+			Price:       19.99,
+			Description: "Baseball cap with Mozilla Firefox logo",
+			SKU:         "CLT-FFX-001",
+			WishList:    false,
 		},
 	}
 }

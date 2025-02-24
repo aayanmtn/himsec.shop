@@ -4,26 +4,40 @@ import "github.com/charmbracelet/lipgloss"
 
 var (
 	// Colors
-	primaryColor = lipgloss.Color("#D4A373")
-	textColor    = lipgloss.Color("#463F3A")
+	primaryColor   = lipgloss.Color("#FF6B35") // Orange color for brand
+	textColor      = lipgloss.Color("#FFFFFF") // White text
+	categoryColor  = lipgloss.Color("#FF8B5B") // Lighter orange for categories
 
 	// Styles
 	TitleStyle = lipgloss.NewStyle().
 		Foreground(primaryColor).
 		Bold(true).
-		Padding(1, 0, 1, 2)
+		Padding(2, 0).
+		SetString("HIMSEC SHOP").
+		Align(lipgloss.Center).
+		Border(lipgloss.NormalBorder()).
+		BorderForeground(primaryColor).
+		Width(60) // Increased width to make logo more prominent
+
+	CategoryStyle = lipgloss.NewStyle().
+		Foreground(categoryColor).
+		Bold(true).
+		Padding(1, 0, 0, 2)
 
 	ProductStyle = lipgloss.NewStyle().
 		Foreground(textColor).
 		Padding(0, 2)
 
-	SelectedStyle = lipgloss.NewStyle().
-		Foreground(primaryColor).
-		Bold(true).
-		Padding(0, 2)
-
-	InfoStyle = lipgloss.NewStyle().
+	PriceStyle = lipgloss.NewStyle().
 		Foreground(textColor).
-		Italic(true).
-		Padding(1, 2)
+		Width(8).
+		Align(lipgloss.Right)
+
+	StarStyle = lipgloss.NewStyle().
+		Foreground(primaryColor).
+		Padding(0, 0, 0, 1)
+
+	SeparatorStyle = lipgloss.NewStyle().
+		Foreground(categoryColor).
+		Padding(0, 2)
 )

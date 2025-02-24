@@ -35,7 +35,6 @@ type Program struct {
 	currentView string
 	products    []models.Product
 	selected    int
-	category    string
 }
 
 func NewProgram() *Program {
@@ -43,18 +42,19 @@ func NewProgram() *Program {
 		currentView: "main",
 		products:    models.InitializeProducts(),
 		selected:    0,
-		category:    "all",
 	}
 }
 
 func (p *Program) View() string {
 	switch p.currentView {
 	case "main":
-		return ui.RenderMainView(p.products, p.selected, p.category)
+		return ui.RenderMainView(p.products, p.selected, "all")
 	case "detail":
 		return ui.RenderDetailView(p.products[p.selected])
+	case "checkout":
+		return ui.RenderCheckoutView(p.products) // Assumed function in ui package
 	default:
-		return ui.RenderMainView(p.products, p.selected, p.category)
+		return ui.RenderMainView(p.products, p.selected, "all")
 	}
 }
 
@@ -62,32 +62,38 @@ func (p *Program) HandleInput(input string) {
 	switch p.currentView {
 	case "main":
 		switch input {
-		case "n":
-			if p.selected < len(p.products)-1 {
-				p.selected++
-			}
-		case "p":
+		case "up", "p":
 			if p.selected > 0 {
 				p.selected--
 			}
-		case "d":
+		case "down", "n":
+			if p.selected < len(p.products)-1 {
+				p.selected++
+			}
+		case "enter", "d":
 			p.currentView = "detail"
-		case "c":
-			p.cycleCategoryFilter()
+		case "w":
+			// Toggle wishlist for selected product
+			p.products[p.selected].WishList = !p.products[p.selected].WishList
+		case "b":
+			p.currentView = "checkout"
 		}
 	case "detail":
+		switch input {
+		case "b":
+			p.currentView = "main"
+		case "w":
+			// Toggle wishlist for current product
+			p.products[p.selected].WishList = !p.products[p.selected].WishList
+		case "p":
+			// TODO: Implement payment gateway integration
+			p.currentView = "checkout"
+		}
+	case "checkout":
+		// Add checkout handling logic here (e.g., processing order)
 		if input == "b" {
 			p.currentView = "main"
 		}
-	}
-}
 
-func (p *Program) cycleCategoryFilter() {
-	categories := []string{"all", "hardware", "software", "accessories"}
-	for i, cat := range categories {
-		if cat == p.category {
-			p.category = categories[(i+1)%len(categories)]
-			return
-		}
 	}
 }
