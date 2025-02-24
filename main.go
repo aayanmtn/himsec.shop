@@ -28,7 +28,7 @@ type model struct {
 	currentField int
 }
 
-func initialModel() model {
+func InitialModel() model {
 	return model{
 		products:    models.InitializeProducts(),
 		selected:    0,

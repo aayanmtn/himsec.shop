@@ -2,29 +2,32 @@
 package ssh
 
 import (
-	"context"
 	"fmt"
 	"log"
-	"os"
 
 	"github.com/charmbracelet/wish"
+	bm "github.com/charmbracelet/wish/bubbletea"
 	"github.com/gliderlabs/ssh"
+	tea "github.com/charmbracelet/bubbletea"
 )
 
+func makeTeaHandler() wish.Handler {
+	return bm.Handler(func() *tea.Program {
+		return tea.NewProgram(initialModel())
+	})
+}
+
 func StartSSHServer() {
-	s, err := wish.NewServer(
-		wish.WithAddress(":2222"),
-		wish.WithHostKeyPath(".ssh/term_info_ed25519"),
-		wish.WithMiddleware(
-			wish.WithBubbleTea(),
-		),
-	)
-	if err != nil {
-		log.Fatalln(err)
+	s := &ssh.Server{
+		Addr:             ":2222",
+		Handler:          makeTeaHandler(),
+		PublicKeyHandler: ssh.PublicKeyAuth(func(ctx ssh.Context, key ssh.PublicKey) bool {
+			return true // Allow all keys for demo
+		}),
 	}
 
 	fmt.Println("Starting SSH server on port 2222...")
-	if err := s.ListenAndServe(); err != ssh.ErrServerClosed {
+	if err := s.ListenAndServe(); err != nil {
 		log.Fatalln(err)
 	}
 }
