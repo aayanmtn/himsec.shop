@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/charmbracelet/bubbles/border"
 	"github.com/charmbracelet/lipgloss"
 
 	"himsec.shop/models"
@@ -23,7 +22,7 @@ func RenderMainView(products []models.Product, selected int, category string) st
 
 	// Create a border style
 	borderStyle := lipgloss.NewStyle().
-		Border(border.Rounded).
+		Border(lipgloss.RoundedBorder()).
 		BorderForeground(styles.PrimaryColor)
 
 	// Render products by category
@@ -77,7 +76,7 @@ func RenderDetailView(product models.Product) string {
 
 	// Create a border style
 	borderStyle := lipgloss.NewStyle().
-		Border(border.Rounded).
+		Border(lipgloss.RoundedBorder()).
 		BorderForeground(styles.PrimaryColor)
 
 	// Product details
@@ -111,7 +110,7 @@ func RenderCheckoutView(products []models.Product) string {
 
 	// Create a border style
 	borderStyle := lipgloss.NewStyle().
-		Border(border.Rounded).
+		Border(lipgloss.RoundedBorder()).
 		BorderForeground(styles.PrimaryColor)
 
 	// Calculate total

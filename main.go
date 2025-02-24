@@ -5,9 +5,10 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"path/filepath"
 	"time"
 
-	"github.com/charmbracelet/bubbles/border"
+	"github.com/charmbracelet/lipgloss"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/wish"
 	bm "github.com/charmbracelet/wish/bubbletea"
@@ -28,7 +29,7 @@ type model struct {
 	currentView string
 	width      int
 	height     int
-	border     border.Border
+	border     lipgloss.Border
 }
 
 func initialModel() model {
@@ -36,7 +37,7 @@ func initialModel() model {
 		products:    models.InitializeProducts(),
 		selected:    0,
 		currentView: "main",
-		border:     border.Normal,
+		border:     lipgloss.RoundedBorder(),
 	}
 }
 
@@ -90,27 +91,55 @@ func (m model) View() string {
 	return fmt.Sprintf("\n%s\n", s)
 }
 
+func ensureSSHDirectory() error {
+	sshDir := ".ssh"
+	if err := os.MkdirAll(sshDir, 0700); err != nil {
+		return fmt.Errorf("failed to create .ssh directory: %w", err)
+	}
+	return nil
+}
+
 func main() {
-	// Set up SSH server
+	// Ensure .ssh directory exists
+	if err := ensureSSHDirectory(); err != nil {
+		log.Fatalf("Failed to setup SSH directory: %v", err)
+	}
+
+	hostKeyPath := filepath.Join(".ssh", "term_info_ed25519")
+
+	// Set up SSH server with more detailed error handling
 	s, err := wish.NewServer(
 		wish.WithAddress(fmt.Sprintf("%s:%d", host, port)),
-		wish.WithHostKeyPath(".ssh/term_info_ed25519"),
+		wish.WithHostKeyPath(hostKeyPath),
 		wish.WithMiddleware(
 			bm.Middleware(teaHandler),
 			logging.Middleware(),
 		),
 	)
 	if err != nil {
-		log.Fatalln(err)
+		log.Fatalf("Failed to create SSH server: %v", err)
 	}
 
-	fmt.Printf("Starting SSH server on %s:%d\n", host, port)
+	// Log server startup
+	log.Printf("Starting SSH server on %s:%d\n", host, port)
 	if err := s.ListenAndServe(); err != nil {
-		log.Fatalln(err)
+		log.Fatalf("SSH server failed: %v", err)
 	}
 }
 
 func teaHandler(s wish.Session) (tea.Model, []tea.ProgramOption) {
+	pty, _, active := s.Pty()
+	if !active {
+		fmt.Println("No active terminal, skipping")
+		return nil, nil
+	}
+
 	m := initialModel()
-	return m, []tea.ProgramOption{tea.WithAltScreen()}
+	return m, []tea.ProgramOption{
+		tea.WithAltScreen(),
+		tea.WithMouseCellMotion(),
+		tea.WithMouseAllMotion(),
+		tea.WithInput(pty),
+		tea.WithOutput(pty),
+	}
 }

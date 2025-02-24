@@ -14,7 +14,7 @@ var (
 		Bold(true).
 		Padding(2, 0).
 		Align(lipgloss.Center).
-		Border(lipgloss.NormalBorder()).
+		Border(lipgloss.RoundedBorder()).
 		BorderForeground(PrimaryColor).
 		Width(60) // Increased width to make logo more prominent
 
