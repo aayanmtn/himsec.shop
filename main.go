@@ -13,6 +13,7 @@ import (
 
 type model struct {
 	products    []models.Product
+	wishes      []models.Wish
 	selected    int
 	currentView string
 	width      int
@@ -56,6 +57,11 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			}
 		case "enter":
 			m.currentView = "detail"
+		case "w":
+			if m.currentView == "main" || m.currentView == "detail" {
+				newWish := models.NewWish(m.products[m.selected].Name)
+				m.wishes = append(m.wishes, newWish)
+			}
 		case "b":
 			if m.currentView == "detail" {
 				m.currentView = "main"

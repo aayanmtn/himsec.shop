@@ -149,8 +149,18 @@ func RenderCheckoutView(products []models.Product, currentField int, name, addre
 	sb.WriteString(borderStyle.Render(cartContent.String()))
 	sb.WriteString("\n\n")
 
+	// Wish List
+	if len(m.wishes) > 0 {
+		cartContent.WriteString(styles.CategoryStyle.Render("\n— Wish List"))
+		cartContent.WriteString("\n")
+		for _, wish := range m.wishes {
+			cartContent.WriteString(styles.ProductStyle.Render("♥ " + wish.ProductName))
+			cartContent.WriteString("\n")
+		}
+	}
+
 	// Controls
-	controls := styles.ProductStyle.Render("[b] Back | [p] Proceed to Payment | [q] Quit")
+	controls := styles.ProductStyle.Render("[w] Add to Wishes | [b] Back | [p] Proceed to Payment | [q] Quit")
 	sb.WriteString(borderStyle.Render(controls))
 
 	return borderStyle.Render(sb.String())
