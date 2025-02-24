@@ -117,13 +117,19 @@ func RenderCheckoutView(products []models.Product, address string) string {
 		styles.PriceStyle.Render(fmt.Sprintf("$%.2f", product.Price)))))
 	cartContent.WriteString("\n\n")
 
-	cartContent.WriteString(styles.CategoryStyle.Render("— Shipping Address"))
+	cartContent.WriteString(styles.CategoryStyle.Render("— Customer Information"))
 	cartContent.WriteString("\n")
-	if address == "" {
-		cartContent.WriteString(styles.ProductStyle.Render("Type your address: _"))
-	} else {
-		cartContent.WriteString(styles.ProductStyle.Render("Address: " + address))
-	}
+	cartContent.WriteString(styles.ProductStyle.Render(fmt.Sprintf("Name: %s%s", address, if currentField == 0 { "_" } else { "" })))
+	cartContent.WriteString("\n")
+	cartContent.WriteString(styles.ProductStyle.Render(fmt.Sprintf("Address: %s%s", address, if currentField == 1 { "_" } else { "" })))
+	cartContent.WriteString("\n")
+	cartContent.WriteString(styles.ProductStyle.Render(fmt.Sprintf("Phone: %s%s", phone, if currentField == 2 { "_" } else { "" })))
+	cartContent.WriteString("\n")
+	cartContent.WriteString(styles.ProductStyle.Render(fmt.Sprintf("Country: %s%s", country, if currentField == 3 { "_" } else { "" })))
+	cartContent.WriteString("\n")
+	cartContent.WriteString(styles.ProductStyle.Render(fmt.Sprintf("State: %s%s", state, if currentField == 4 { "_" } else { "" })))
+	cartContent.WriteString("\n")
+	cartContent.WriteString(styles.ProductStyle.Render(fmt.Sprintf("City: %s%s", city, if currentField == 5 { "_" } else { "" })))
 	cartContent.WriteString("\n\n")
 	
 	cartContent.WriteString(styles.CategoryStyle.Render("— Summary"))

@@ -18,7 +18,13 @@ type model struct {
 	width      int
 	height     int
 	border     lipgloss.Border
+	name       string
 	address    string
+	phone      string
+	country    string
+	state      string
+	city       string
+	currentField int
 }
 
 func initialModel() model {
@@ -60,12 +66,54 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			if m.currentView == "detail" {
 				m.currentView = "checkout"
 			}
+		case "tab":
+			if m.currentView == "checkout" {
+				m.currentField = (m.currentField + 1) % 6
+			}
 		default:
-			if m.currentView == "checkout" && msg.Type == tea.KeyRunes {
-				m.address += msg.String()
-			} else if m.currentView == "checkout" && msg.Type == tea.KeyBackspace {
-				if len(m.address) > 0 {
-					m.address = m.address[:len(m.address)-1]
+			if m.currentView == "checkout" {
+				if msg.Type == tea.KeyRunes {
+					switch m.currentField {
+					case 0:
+						m.name += msg.String()
+					case 1:
+						m.address += msg.String()
+					case 2:
+						m.phone += msg.String()
+					case 3:
+						m.country += msg.String()
+					case 4:
+						m.state += msg.String()
+					case 5:
+						m.city += msg.String()
+					}
+				} else if msg.Type == tea.KeyBackspace {
+					switch m.currentField {
+					case 0:
+						if len(m.name) > 0 {
+							m.name = m.name[:len(m.name)-1]
+						}
+					case 1:
+						if len(m.address) > 0 {
+							m.address = m.address[:len(m.address)-1]
+						}
+					case 2:
+						if len(m.phone) > 0 {
+							m.phone = m.phone[:len(m.phone)-1]
+						}
+					case 3:
+						if len(m.country) > 0 {
+							m.country = m.country[:len(m.country)-1]
+						}
+					case 4:
+						if len(m.state) > 0 {
+							m.state = m.state[:len(m.state)-1]
+						}
+					case 5:
+						if len(m.city) > 0 {
+							m.city = m.city[:len(m.city)-1]
+						}
+					}
 				}
 			}
 		}
