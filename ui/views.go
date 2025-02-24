@@ -119,7 +119,6 @@ func RenderCheckoutView(products []models.Product, currentField int, name, addre
 
 	cartContent.WriteString(styles.CategoryStyle.Render("— Customer Information"))
 	cartContent.WriteString("\n")
-	highlightStyle := lipgloss.NewStyle().Background(styles.PrimaryColor)
 	
 	renderField := func(label, value string, fieldNum int) string {
 		if currentField == fieldNum {
