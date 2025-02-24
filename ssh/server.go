@@ -13,7 +13,7 @@ import (
 
 func makeTeaHandler() wish.Handler {
 	return bm.Handler(func() *tea.Program {
-		return tea.NewProgram(initialModel())
+		return tea.NewProgram(InitialModel())
 	})
 }
 

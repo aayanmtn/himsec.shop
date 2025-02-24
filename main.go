@@ -8,6 +8,7 @@ import (
 	"github.com/charmbracelet/lipgloss"
 
 	"himsec.shop/models"
+	"himsec.shop/ssh"
 	"himsec.shop/ui"
 )
 
@@ -152,7 +153,7 @@ func main() {
 	// Start SSH server in a goroutine
 	go ssh.StartSSHServer()
 
-	p := tea.NewProgram(initialModel(), tea.WithAltScreen())
+	p := tea.NewProgram(InitialModel(), tea.WithAltScreen())
 	if _, err := p.Run(); err != nil {
 		log.Fatal(err)
 	}
