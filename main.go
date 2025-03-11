@@ -1,5 +1,3 @@
-// Save this as ssh_server.go in your project
-
 package main
 
 import (
@@ -20,6 +18,10 @@ import (
 	bwish "github.com/charmbracelet/wish/bubbletea"
 	"github.com/charmbracelet/wish/logging"
 	"github.com/muesli/termenv"
+
+	// Local imports - assuming these packages exist in your project
+	"himsec.shop/models"
+	"himsec.shop/ui"
 )
 
 const (
@@ -27,10 +29,9 @@ const (
 	port = "23234"
 )
 
-// Add your model struct definition here
 type model struct {
-	products     []Product
-	wishes       []Wish
+	products     []models.Product
+	wishes       []models.Wish
 	selected     int
 	currentView  string
 	width        int
@@ -45,105 +46,9 @@ type model struct {
 	currentField int
 }
 
-// Add Product and Wish struct definitions here
-type Product struct {
-	Name        string
-	Description string
-	Price       float64
-	Category    string
-}
-
-type Wish struct {
-	ProductName string
-	AddedAt     time.Time
-}
-
-// InitializeProducts returns a slice of sample products
-func InitializeProducts() []Product {
-	return []Product{
-		{Name: "USB Drive", Description: "16GB USB 3.0 Flash Drive", Price: 12.99, Category: "Electronics"},
-		{Name: "Wireless Mouse", Description: "Bluetooth Wireless Mouse", Price: 24.99, Category: "Electronics"},
-		{Name: "Mechanical Keyboard", Description: "RGB Mechanical Gaming Keyboard", Price: 79.99, Category: "Electronics"},
-		{Name: "Headphones", Description: "Noise-cancelling Bluetooth Headphones", Price: 149.99, Category: "Electronics"},
-		{Name: "Laptop Backpack", Description: "Water-resistant Laptop Backpack", Price: 39.99, Category: "Accessories"},
-	}
-}
-
-// NewWish creates a new wish from a product name
-func NewWish(productName string) Wish {
-	return Wish{
-		ProductName: productName,
-		AddedAt:     time.Now(),
-	}
-}
-
-// Add simplified UI rendering functions here
-func RenderMainView(products []Product, selected int, filter string) string {
-	var s string
-	s += "==== PRODUCT LIST ====\n\n"
-
-	for i, p := range products {
-		prefix := "  "
-		if i == selected {
-			prefix = "> "
-		}
-		s += fmt.Sprintf("%s%s - $%.2f\n", prefix, p.Name, p.Price)
-	}
-
-	s += "\n====================\n"
-	s += "↑/↓: navigate • enter: view details • w: add to wishlist • b: checkout • q: quit"
-
-	return s
-}
-
-func RenderDetailView(product Product) string {
-	var s string
-	s += fmt.Sprintf("==== PRODUCT DETAILS: %s ====\n\n", product.Name)
-	s += fmt.Sprintf("Description: %s\n", product.Description)
-	s += fmt.Sprintf("Price: $%.2f\n", product.Price)
-	s += fmt.Sprintf("Category: %s\n", product.Category)
-
-	s += "\n====================\n"
-	s += "b: back • w: add to wishlist • p: purchase • q: quit"
-
-	return s
-}
-
-func RenderCheckoutView(products []Product, wishes []Wish, currentField int, name, address, phone, country, state, city string) string {
-	var s string
-	s += "==== CHECKOUT ====\n\n"
-
-	// Products in cart
-	s += "Products:\n"
-	total := 0.0
-	for _, p := range products {
-		s += fmt.Sprintf("  %s - $%.2f\n", p.Name, p.Price)
-		total += p.Price
-	}
-	s += fmt.Sprintf("\nTotal: $%.2f\n\n", total)
-
-	// Form fields
-	fieldLabels := []string{"Name", "Address", "Phone", "Country", "State", "City"}
-	fieldValues := []string{name, address, phone, country, state, city}
-
-	s += "Shipping Information:\n"
-	for i, label := range fieldLabels {
-		prefix := "  "
-		if i == currentField {
-			prefix = "> "
-		}
-		s += fmt.Sprintf("%s%s: %s\n", prefix, label, fieldValues[i])
-	}
-
-	s += "\n====================\n"
-	s += "↑/↓/tab: navigate fields • type to edit • b: back to products • q: quit"
-
-	return s
-}
-
 func InitialModel() model {
 	return model{
-		products:    InitializeProducts(),
+		products:    models.InitializeProducts(),
 		selected:    0,
 		currentView: "main",
 		border:      lipgloss.RoundedBorder(),
@@ -180,7 +85,7 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 					m.currentView = "detail"
 				case "w":
 					if m.currentView == "main" || m.currentView == "detail" {
-						newWish := NewWish(m.products[m.selected].Name)
+						newWish := models.NewWish(m.products[m.selected].Name)
 						m.wishes = append(m.wishes, newWish)
 					}
 				case "b":
@@ -251,11 +156,11 @@ func (m model) View() string {
 	s := ""
 	switch m.currentView {
 		case "main":
-			s = RenderMainView(m.products, m.selected, "all")
+			s = ui.RenderMainView(m.products, m.selected, "all")
 		case "detail":
-			s = RenderDetailView(m.products[m.selected])
+			s = ui.RenderDetailView(m.products[m.selected])
 		case "checkout":
-			s = RenderCheckoutView(m.products[m.selected:m.selected+1], m.wishes, m.currentField, m.name, m.address, m.phone, m.country, m.state, m.city)
+			s = ui.RenderCheckoutView(m.products[m.selected:m.selected+1], m.wishes, m.currentField, m.name, m.address, m.phone, m.country, m.state, m.city)
 	}
 	return fmt.Sprintf("\n%s\n", s)
 }
