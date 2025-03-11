@@ -1,40 +1,152 @@
+// Save this as ssh_server.go in your project
+
 package main
 
 import (
+	"context"
+	"errors"
 	"fmt"
 	"log"
+	"net"
+	"os"
+	"os/signal"
+	"syscall"
+	"time"
 
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
-
-	"himsec.shop/models"
-	"himsec.shop/ssh"
-	"himsec.shop/ui"
+	"github.com/charmbracelet/ssh"
+	"github.com/charmbracelet/wish"
+	bwish "github.com/charmbracelet/wish/bubbletea"
+	"github.com/charmbracelet/wish/logging"
+	"github.com/muesli/termenv"
 )
 
+const (
+	host = "localhost"
+	port = "23234"
+)
+
+// Add your model struct definition here
 type model struct {
-	products    []models.Product
-	wishes      []models.Wish
-	selected    int
-	currentView string
-	width      int
-	height     int
-	border     lipgloss.Border
-	name       string
-	address    string
-	phone      string
-	country    string
-	state      string
-	city       string
+	products     []Product
+	wishes       []Wish
+	selected     int
+	currentView  string
+	width        int
+	height       int
+	border       lipgloss.Border
+	name         string
+	address      string
+	phone        string
+	country      string
+	state        string
+	city         string
 	currentField int
+}
+
+// Add Product and Wish struct definitions here
+type Product struct {
+	Name        string
+	Description string
+	Price       float64
+	Category    string
+}
+
+type Wish struct {
+	ProductName string
+	AddedAt     time.Time
+}
+
+// InitializeProducts returns a slice of sample products
+func InitializeProducts() []Product {
+	return []Product{
+		{Name: "USB Drive", Description: "16GB USB 3.0 Flash Drive", Price: 12.99, Category: "Electronics"},
+		{Name: "Wireless Mouse", Description: "Bluetooth Wireless Mouse", Price: 24.99, Category: "Electronics"},
+		{Name: "Mechanical Keyboard", Description: "RGB Mechanical Gaming Keyboard", Price: 79.99, Category: "Electronics"},
+		{Name: "Headphones", Description: "Noise-cancelling Bluetooth Headphones", Price: 149.99, Category: "Electronics"},
+		{Name: "Laptop Backpack", Description: "Water-resistant Laptop Backpack", Price: 39.99, Category: "Accessories"},
+	}
+}
+
+// NewWish creates a new wish from a product name
+func NewWish(productName string) Wish {
+	return Wish{
+		ProductName: productName,
+		AddedAt:     time.Now(),
+	}
+}
+
+// Add simplified UI rendering functions here
+func RenderMainView(products []Product, selected int, filter string) string {
+	var s string
+	s += "==== PRODUCT LIST ====\n\n"
+
+	for i, p := range products {
+		prefix := "  "
+		if i == selected {
+			prefix = "> "
+		}
+		s += fmt.Sprintf("%s%s - $%.2f\n", prefix, p.Name, p.Price)
+	}
+
+	s += "\n====================\n"
+	s += "↑/↓: navigate • enter: view details • w: add to wishlist • b: checkout • q: quit"
+
+	return s
+}
+
+func RenderDetailView(product Product) string {
+	var s string
+	s += fmt.Sprintf("==== PRODUCT DETAILS: %s ====\n\n", product.Name)
+	s += fmt.Sprintf("Description: %s\n", product.Description)
+	s += fmt.Sprintf("Price: $%.2f\n", product.Price)
+	s += fmt.Sprintf("Category: %s\n", product.Category)
+
+	s += "\n====================\n"
+	s += "b: back • w: add to wishlist • p: purchase • q: quit"
+
+	return s
+}
+
+func RenderCheckoutView(products []Product, wishes []Wish, currentField int, name, address, phone, country, state, city string) string {
+	var s string
+	s += "==== CHECKOUT ====\n\n"
+
+	// Products in cart
+	s += "Products:\n"
+	total := 0.0
+	for _, p := range products {
+		s += fmt.Sprintf("  %s - $%.2f\n", p.Name, p.Price)
+		total += p.Price
+	}
+	s += fmt.Sprintf("\nTotal: $%.2f\n\n", total)
+
+	// Form fields
+	fieldLabels := []string{"Name", "Address", "Phone", "Country", "State", "City"}
+	fieldValues := []string{name, address, phone, country, state, city}
+
+	s += "Shipping Information:\n"
+	for i, label := range fieldLabels {
+		prefix := "  "
+		if i == currentField {
+			prefix = "> "
+		}
+		s += fmt.Sprintf("%s%s: %s\n", prefix, label, fieldValues[i])
+	}
+
+	s += "\n====================\n"
+	s += "↑/↓/tab: navigate fields • type to edit • b: back to products • q: quit"
+
+	return s
 }
 
 func InitialModel() model {
 	return model{
-		products:    models.InitializeProducts(),
+		products:    InitializeProducts(),
 		selected:    0,
 		currentView: "main",
-		border:     lipgloss.RoundedBorder(),
+		border:      lipgloss.RoundedBorder(),
 	}
 }
 
@@ -44,93 +156,93 @@ func (m model) Init() tea.Cmd {
 
 func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	switch msg := msg.(type) {
-	case tea.KeyMsg:
-		switch msg.String() {
-		case "q", "ctrl+c":
-			return m, tea.Quit
-		case "up", "k":
-			if m.currentView == "checkout" && m.currentField > 0 {
-				m.currentField--
-			} else if m.currentView == "main" && m.selected > 0 {
-				m.selected--
-			}
-		case "down", "j":
-			if m.currentView == "checkout" {
-				m.currentField = (m.currentField + 1) % 6
-			} else if m.currentView == "main" && m.selected < len(m.products)-1 {
-				m.selected++
-			}
-		case "tab":
-			if m.currentView == "checkout" {
-				m.currentField = (m.currentField + 1) % 6
-			}
-		case "enter":
-			m.currentView = "detail"
-		case "w":
-			if m.currentView == "main" || m.currentView == "detail" {
-				newWish := models.NewWish(m.products[m.selected].Name)
-				m.wishes = append(m.wishes, newWish)
-			}
-		case "b":
-			if m.currentView == "detail" {
-				m.currentView = "main"
-			} else if m.currentView == "main" {
-				m.currentView = "checkout"
-			}
-		case "p":
-			if m.currentView == "detail" {
-				m.currentView = "checkout"
-			}
-		default:
-			if m.currentView == "checkout" {
-				if msg.Type == tea.KeyRunes {
-					switch m.currentField {
-					case 0:
-						m.name += msg.String()
-					case 1:
-						m.address += msg.String()
-					case 2:
-						m.phone += msg.String()
-					case 3:
-						m.country += msg.String()
-					case 4:
-						m.state += msg.String()
-					case 5:
-						m.city += msg.String()
+		case tea.KeyMsg:
+			switch msg.String() {
+				case "q", "ctrl+c":
+					return m, tea.Quit
+				case "up", "k":
+					if m.currentView == "checkout" && m.currentField > 0 {
+						m.currentField--
+					} else if m.currentView == "main" && m.selected > 0 {
+						m.selected--
 					}
-				} else if msg.Type == tea.KeyBackspace {
-					switch m.currentField {
-					case 0:
-						if len(m.name) > 0 {
-							m.name = m.name[:len(m.name)-1]
-						}
-					case 1:
-						if len(m.address) > 0 {
-							m.address = m.address[:len(m.address)-1]
-						}
-					case 2:
-						if len(m.phone) > 0 {
-							m.phone = m.phone[:len(m.phone)-1]
-						}
-					case 3:
-						if len(m.country) > 0 {
-							m.country = m.country[:len(m.country)-1]
-						}
-					case 4:
-						if len(m.state) > 0 {
-							m.state = m.state[:len(m.state)-1]
-						}
-					case 5:
-						if len(m.city) > 0 {
-							m.city = m.city[:len(m.city)-1]
+				case "down", "j":
+					if m.currentView == "checkout" {
+						m.currentField = (m.currentField + 1) % 6
+					} else if m.currentView == "main" && m.selected < len(m.products)-1 {
+						m.selected++
+					}
+				case "tab":
+					if m.currentView == "checkout" {
+						m.currentField = (m.currentField + 1) % 6
+					}
+				case "enter":
+					m.currentView = "detail"
+				case "w":
+					if m.currentView == "main" || m.currentView == "detail" {
+						newWish := NewWish(m.products[m.selected].Name)
+						m.wishes = append(m.wishes, newWish)
+					}
+				case "b":
+					if m.currentView == "detail" {
+						m.currentView = "main"
+					} else if m.currentView == "main" {
+						m.currentView = "checkout"
+					}
+				case "p":
+					if m.currentView == "detail" {
+						m.currentView = "checkout"
+					}
+				default:
+					if m.currentView == "checkout" {
+						if msg.Type == tea.KeyRunes {
+							switch m.currentField {
+								case 0:
+									m.name += msg.String()
+								case 1:
+									m.address += msg.String()
+								case 2:
+									m.phone += msg.String()
+								case 3:
+									m.country += msg.String()
+								case 4:
+									m.state += msg.String()
+								case 5:
+									m.city += msg.String()
+							}
+						} else if msg.Type == tea.KeyBackspace {
+							switch m.currentField {
+								case 0:
+									if len(m.name) > 0 {
+										m.name = m.name[:len(m.name)-1]
+									}
+								case 1:
+									if len(m.address) > 0 {
+										m.address = m.address[:len(m.address)-1]
+									}
+								case 2:
+									if len(m.phone) > 0 {
+										m.phone = m.phone[:len(m.phone)-1]
+									}
+								case 3:
+									if len(m.country) > 0 {
+										m.country = m.country[:len(m.country)-1]
+									}
+								case 4:
+									if len(m.state) > 0 {
+										m.state = m.state[:len(m.state)-1]
+									}
+								case 5:
+									if len(m.city) > 0 {
+										m.city = m.city[:len(m.city)-1]
+									}
+							}
 						}
 					}
-				}
 			}
-		}
-	case tea.WindowSizeMsg:
-		m.width = msg.Width
-		m.height = msg.Height
+								case tea.WindowSizeMsg:
+									m.width = msg.Width
+									m.height = msg.Height
 	}
 	return m, nil
 }
@@ -138,23 +250,83 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 func (m model) View() string {
 	s := ""
 	switch m.currentView {
-	case "main":
-		s = ui.RenderMainView(m.products, m.selected, "all")
-	case "detail":
-		s = ui.RenderDetailView(m.products[m.selected])
-	case "checkout":
-		s = ui.RenderCheckoutView(m.products[m.selected:m.selected+1], m.wishes, m.currentField, m.name, m.address, m.phone, m.country, m.state, m.city)
+		case "main":
+			s = RenderMainView(m.products, m.selected, "all")
+		case "detail":
+			s = RenderDetailView(m.products[m.selected])
+		case "checkout":
+			s = RenderCheckoutView(m.products[m.selected:m.selected+1], m.wishes, m.currentField, m.name, m.address, m.phone, m.country, m.state, m.city)
 	}
-
 	return fmt.Sprintf("\n%s\n", s)
 }
 
-func main() {
-	// Start SSH server in a goroutine
-	go ssh.StartSSHServer()
+func shopBubbleteaMiddleware() wish.Middleware {
+	newProg := func(m tea.Model, opts ...tea.ProgramOption) *tea.Program {
+		return tea.NewProgram(m, opts...)
+	}
 
-	p := tea.NewProgram(InitialModel(), tea.WithAltScreen())
-	if _, err := p.Run(); err != nil {
-		log.Fatal(err)
+	teaHandler := func(s ssh.Session) *tea.Program {
+		pty, _, active := s.Pty()
+		if !active {
+			wish.Fatalln(s, "no active terminal, skipping")
+			return nil
+		}
+
+		m := InitialModel()
+		m.width = pty.Window.Width
+		m.height = pty.Window.Height
+
+		return newProg(m, append(bwish.MakeOptions(s), tea.WithAltScreen())...)
+	}
+
+	return bwish.MiddlewareWithProgramHandler(teaHandler, termenv.ANSI256)
+}
+
+func main() {
+	// Ensure the SSH host key exists
+	keyPath := ".ssh/id_ed25519"
+	if _, err := os.Stat(keyPath); os.IsNotExist(err) {
+		// Create the directory if it doesn't exist
+		if _, err := os.Stat(".ssh"); os.IsNotExist(err) {
+			if err := os.Mkdir(".ssh", 0700); err != nil {
+				log.Fatalf("Failed to create .ssh directory: %v", err)
+			}
+		}
+
+		log.Printf("SSH host key not found at %s", keyPath)
+		log.Printf("Generate a key with: ssh-keygen -t ed25519 -f %s -N \"\"", keyPath)
+		log.Fatalf("SSH host key required")
+	}
+
+	s, err := wish.NewServer(
+		wish.WithAddress(net.JoinHostPort(host, port)),
+				 wish.WithHostKeyPath(keyPath),
+				 wish.WithMiddleware(
+					 shopBubbleteaMiddleware(),
+						     logging.Middleware(),
+				 ),
+	)
+	if err != nil {
+		log.Fatalf("Could not start server: %v", err)
+	}
+
+	done := make(chan os.Signal, 1)
+	signal.Notify(done, os.Interrupt, syscall.SIGINT, syscall.SIGTERM)
+	log.Printf("Starting SSH shop server on %s:%s", host, port)
+
+	go func() {
+		if err = s.ListenAndServe(); err != nil && !errors.Is(err, ssh.ErrServerClosed) {
+			log.Printf("Could not start server: %v", err)
+			done <- nil
+		}
+	}()
+
+	<-done
+	log.Println("Stopping SSH server")
+
+	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+	defer func() { cancel() }()
+	if err := s.Shutdown(ctx); err != nil && !errors.Is(err, ssh.ErrServerClosed) {
+		log.Printf("Could not stop server: %v", err)
 	}
 }

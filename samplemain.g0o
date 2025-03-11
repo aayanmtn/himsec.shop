@@ -1,0 +1,91 @@
+package main
+
+import (
+	"fmt"
+	"log"
+
+	tea "github.com/charmbracelet/bubbletea"
+	"github.com/charmbracelet/wish"
+	bm "github.com/charmbracelet/wish/bubbletea"
+	"github.com/gliderlabs/ssh"
+	"himsec.shop/models"
+	"himsec.shop/ui"
+)
+
+// Define a model that implements tea.Model
+type model struct {
+	products    []models.Product
+	selected    int
+	currentView string
+}
+
+func InitialModel() model {
+	return model{
+		products:    models.InitializeProducts(),
+		selected:    0,
+		currentView: "main",
+	}
+}
+
+func (m model) Init() tea.Cmd {
+	return nil
+}
+
+func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
+	switch msg := msg.(type) {
+	case tea.KeyMsg:
+		switch msg.String() {
+		case "q", "ctrl+c":
+			return m, tea.Quit
+		case "up":
+			if m.selected > 0 {
+				m.selected--
+			}
+		case "down":
+			if m.selected < len(m.products)-1 {
+				m.selected++
+			}
+		case "enter":
+			m.currentView = "detail"
+		}
+	}
+	return m, nil
+}
+
+func (m model) View() string {
+	s := ""
+	switch m.currentView {
+	case "main":
+		s = ui.RenderMainView(m.products, m.selected, "all")
+	case "detail":
+		s = ui.RenderDetailView(m.products[m.selected])
+	}
+	return fmt.Sprintf("\n%s\n", s)
+}
+
+func makeTeaHandler() wish.Handler {
+	return bm.Handler(InitialModel)
+}
+
+func StartSSHServer() {
+	s := &ssh.Server{
+		Addr:    "0.0.0.0:2222",
+		Handler: makeTeaHandler(),
+		PublicKeyHandler: ssh.PublicKeyAuth(func(ctx ssh.Context, key ssh.PublicKey) bool {
+			return true // Allow all keys for demo purposes
+		}),
+	}
+
+	fmt.Println("Starting SSH server on port 2222...")
+	if err := s.ListenAndServe(); err != nil {
+		log.Fatalln(err)
+	}
+}
+
+func main() {
+	go StartSSHServer() // Start the SSH server in a separate goroutine
+	p := tea.NewProgram(InitialModel())
+	if _, err := p.Run(); err != nil {
+		log.Fatal(err)
+	}
+}
