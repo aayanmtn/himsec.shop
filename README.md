@@ -60,3 +60,7 @@ Once connected, you can navigate the application using the keyboard:
 -   **b**: Go back or proceed to checkout from the main view.
 -   **p**: Proceed to payment from checkout.
 -   **q** or **Ctrl+c**: Quit the application.
+
+## License
+
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
